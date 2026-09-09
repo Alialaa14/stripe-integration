@@ -1,0 +1,193 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id               String          @id @default(cuid())
+  email            String          @unique
+  name             String?
+  password         String
+  stripeCustomerId String?         @unique
+  customer         StripeCustomer?
+  subscriptions    Subscription[]
+  payments         Payment[]
+  invoices         Invoice[]
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+}
+
+model StripeCustomer {
+  id               String         @id @default(cuid())
+  stripeCustomerId String         @unique
+  userId           String         @unique
+  user             User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  email            String?
+  name             String?
+  currency         String?
+  defaultPaymentMethodId String?
+  subscriptions    Subscription[]
+  payments         Payment[]
+  invoices         Invoice[]
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+}
+
+model Product {
+  id          String   @id @default(cuid())
+  stripeProductId String @unique
+  name        String
+  description String?
+  active      Boolean  @default(true)
+  metadata    Json?
+  prices      Price[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Price {
+  id            String       @id @default(cuid())
+  stripePriceId String       @unique
+  productId     String
+  product       Product      @relation(fields: [productId], references: [id], onDelete: Cascade)
+  active        Boolean      @default(true)
+  currency      String
+  unitAmount    Int?
+  recurring     Boolean      @default(false)
+  interval      BillingInterval?
+  intervalCount Int?
+  subscriptions SubscriptionItem[]
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+}
+
+model Subscription {
+  id                   String             @id @default(cuid())
+  stripeSubscriptionId String             @unique
+  userId               String
+  customerId           String
+  user                 User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  customer             StripeCustomer     @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  status               SubscriptionStatus
+  cancelAtPeriodEnd    Boolean            @default(false)
+  currentPeriodStart   DateTime
+  currentPeriodEnd     DateTime
+  canceledAt           DateTime?
+  endedAt              DateTime?
+  items                SubscriptionItem[]
+  invoices             Invoice[]
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+}
+
+model SubscriptionItem {
+  id                   String       @id @default(cuid())
+  stripeSubscriptionItemId String   @unique
+  subscriptionId       String
+  priceId              String
+  subscription         Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  price                Price        @relation(fields: [priceId], references: [id])
+  quantity             Int          @default(1)
+  createdAt            DateTime     @default(now())
+  updatedAt            DateTime     @updatedAt
+}
+
+model Payment {
+  id                String          @id @default(cuid())
+  stripePaymentIntentId String       @unique
+  userId            String
+  customerId        String?
+  user              User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  customer          StripeCustomer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  amount            Int
+  amountReceived    Int             @default(0)
+  currency          String
+  status            PaymentStatus
+  description       String?
+  receiptUrl        String?
+  failureCode       String?
+  failureMessage    String?
+  metadata          Json?
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+}
+
+model Invoice {
+  id                String          @id @default(cuid())
+  stripeInvoiceId   String          @unique
+  userId            String
+  customerId        String
+  subscriptionId    String?
+  user              User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  customer          StripeCustomer  @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  subscription      Subscription?   @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
+  number            String?
+  amountDue         Int
+  amountPaid        Int             @default(0)
+  amountRemaining   Int             @default(0)
+  currency          String
+  status            InvoiceStatus
+  hostedInvoiceUrl  String?
+  invoicePdf        String?
+  dueDate           DateTime?
+  paidAt            DateTime?
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+}
+
+model WebhookEvent {
+  id              String   @id @default(cuid())
+  stripeEventId   String   @unique
+  type            String
+  apiVersion      String?
+  payload         Json
+  processed       Boolean  @default(false)
+  processedAt     DateTime?
+  error           String?
+  createdAt       DateTime @default(now())
+}
+
+enum BillingInterval {
+  day
+  week
+  month
+  year
+}
+
+enum SubscriptionStatus {
+  incomplete
+  incomplete_expired
+  trialing
+  active
+  past_due
+  canceled
+  unpaid
+  paused
+}
+
+enum PaymentStatus {
+  requires_payment_method
+  requires_confirmation
+  requires_action
+  processing
+  requires_capture
+  succeeded
+  canceled
+}
+
+enum InvoiceStatus {
+  draft
+  open
+  paid
+  uncollectible
+  void
+}
