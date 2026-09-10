@@ -4,6 +4,8 @@ import { createObserveModule } from '@nestjs/observe';
 import { StripeModule } from './stripe/stripe.module';
 import { TokenModule } from './Token/token.module';
 import { AccountModule } from './accounts/account.module';
+import { AuthModule } from './auth/auth.module';
+import { PrismaModule } from './prisma/prisma.module';
 export const { ObserveModule, ObserveInstrument } = createObserveModule();
 
 @Module({
@@ -13,6 +15,8 @@ export const { ObserveModule, ObserveInstrument } = createObserveModule();
     }),
 
     TokenModule,
+    PrismaModule,
+    AuthModule,
     StripeModule,
     AccountModule,
   ],

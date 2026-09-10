@@ -22,52 +22,53 @@ model User {
   subscriptions    Subscription[]
   payments         Payment[]
   invoices         Invoice[]
+  accounts         StripeAccount[]
   createdAt        DateTime        @default(now())
   updatedAt        DateTime        @updatedAt
 }
 
 model StripeCustomer {
-  id               String         @id @default(cuid())
-  stripeCustomerId String         @unique
-  userId           String         @unique
-  user             User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  email            String?
-  name             String?
-  currency         String?
+  id                     String         @id @default(cuid())
+  stripeCustomerId       String         @unique
+  userId                 String         @unique
+  user                   User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  email                  String?
+  name                   String?
+  currency               String?
   defaultPaymentMethodId String?
-  subscriptions    Subscription[]
-  payments         Payment[]
-  invoices         Invoice[]
-  createdAt        DateTime       @default(now())
-  updatedAt        DateTime       @updatedAt
+  subscriptions          Subscription[]
+  payments               Payment[]
+  invoices               Invoice[]
+  createdAt              DateTime       @default(now())
+  updatedAt              DateTime       @updatedAt
 }
 
 model Product {
-  id          String   @id @default(cuid())
-  stripeProductId String @unique
-  name        String
-  description String?
-  active      Boolean  @default(true)
-  metadata    Json?
-  prices      Price[]
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id              String   @id @default(cuid())
+  stripeProductId String   @unique
+  name            String
+  description     String?
+  active          Boolean  @default(true)
+  metadata        Json?
+  prices          Price[]
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 }
 
 model Price {
-  id            String       @id @default(cuid())
-  stripePriceId String       @unique
+  id            String             @id @default(cuid())
+  stripePriceId String             @unique
   productId     String
-  product       Product      @relation(fields: [productId], references: [id], onDelete: Cascade)
-  active        Boolean      @default(true)
+  product       Product            @relation(fields: [productId], references: [id], onDelete: Cascade)
+  active        Boolean            @default(true)
   currency      String
   unitAmount    Int?
-  recurring     Boolean      @default(false)
+  recurring     Boolean            @default(false)
   interval      BillingInterval?
   intervalCount Int?
   subscriptions SubscriptionItem[]
-  createdAt     DateTime     @default(now())
-  updatedAt     DateTime     @updatedAt
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
 }
 
 model Subscription {
@@ -90,70 +91,95 @@ model Subscription {
 }
 
 model SubscriptionItem {
-  id                   String       @id @default(cuid())
-  stripeSubscriptionItemId String   @unique
-  subscriptionId       String
-  priceId              String
-  subscription         Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
-  price                Price        @relation(fields: [priceId], references: [id])
-  quantity             Int          @default(1)
-  createdAt            DateTime     @default(now())
-  updatedAt            DateTime     @updatedAt
+  id                       String       @id @default(cuid())
+  stripeSubscriptionItemId String       @unique
+  subscriptionId           String
+  priceId                  String
+  subscription             Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  price                    Price        @relation(fields: [priceId], references: [id])
+  quantity                 Int          @default(1)
+  createdAt                DateTime     @default(now())
+  updatedAt                DateTime     @updatedAt
 }
 
 model Payment {
-  id                String          @id @default(cuid())
-  stripePaymentIntentId String       @unique
-  userId            String
-  customerId        String?
-  user              User            @relation(fields: [userId], references: [id], onDelete: Cascade)
-  customer          StripeCustomer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
-  amount            Int
-  amountReceived    Int             @default(0)
-  currency          String
-  status            PaymentStatus
-  description       String?
-  receiptUrl        String?
-  failureCode       String?
-  failureMessage    String?
-  metadata          Json?
-  createdAt         DateTime        @default(now())
-  updatedAt         DateTime        @updatedAt
+  id                    String          @id @default(cuid())
+  stripePaymentIntentId String          @unique
+  userId                String
+  customerId            String?
+  user                  User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  customer              StripeCustomer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  amount                Int
+  amountReceived        Int             @default(0)
+  currency              String
+  status                PaymentStatus
+  description           String?
+  receiptUrl            String?
+  failureCode           String?
+  failureMessage        String?
+  metadata              Json?
+  createdAt             DateTime        @default(now())
+  updatedAt             DateTime        @updatedAt
 }
 
 model Invoice {
-  id                String          @id @default(cuid())
-  stripeInvoiceId   String          @unique
-  userId            String
-  customerId        String
-  subscriptionId    String?
-  user              User            @relation(fields: [userId], references: [id], onDelete: Cascade)
-  customer          StripeCustomer  @relation(fields: [customerId], references: [id], onDelete: Cascade)
-  subscription      Subscription?   @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
-  number            String?
-  amountDue         Int
-  amountPaid        Int             @default(0)
-  amountRemaining   Int             @default(0)
-  currency          String
-  status            InvoiceStatus
-  hostedInvoiceUrl  String?
-  invoicePdf        String?
-  dueDate           DateTime?
-  paidAt            DateTime?
-  createdAt         DateTime        @default(now())
-  updatedAt         DateTime        @updatedAt
+  id               String         @id @default(cuid())
+  stripeInvoiceId  String         @unique
+  userId           String
+  customerId       String
+  subscriptionId   String?
+  user             User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  customer         StripeCustomer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  subscription     Subscription?  @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
+  number           String?
+  amountDue        Int
+  amountPaid       Int            @default(0)
+  amountRemaining  Int            @default(0)
+  currency         String
+  status           InvoiceStatus
+  hostedInvoiceUrl String?
+  invoicePdf       String?
+  dueDate          DateTime?
+  paidAt           DateTime?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
 }
 
 model WebhookEvent {
-  id              String   @id @default(cuid())
-  stripeEventId   String   @unique
-  type            String
-  apiVersion      String?
-  payload         Json
-  processed       Boolean  @default(false)
-  processedAt     DateTime?
-  error           String?
-  createdAt       DateTime @default(now())
+  id            String    @id @default(cuid())
+  stripeEventId String    @unique
+  type          String
+  apiVersion    String?
+  payload       Json
+  processed     Boolean   @default(false)
+  processedAt   DateTime?
+  error         String?
+  createdAt     DateTime  @default(now())
+}
+
+model StripeAccount {
+  id                    String    @id @default(cuid())
+  stripeAccountId       String    @unique
+  userId                String?
+  user                  User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  displayName           String?
+  contactEmail          String?
+  contactPhone          String?
+  dashboard             String?
+  appliedConfigurations String[]  @default([])
+  livemode              Boolean   @default(false)
+  closed                Boolean   @default(false)
+  closedAt              DateTime?
+  configuration         Json?
+  defaults              Json?
+  identity              Json?
+  requirements          Json?
+  metadata              Json?
+  raw                   Json
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([userId])
 }
 
 enum BillingInterval {

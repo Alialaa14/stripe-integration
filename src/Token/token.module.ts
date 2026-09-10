@@ -1,19 +1,11 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ConfigModule } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { TokenService } from './token.service';
 
 @Module({
   controllers: [],
-  providers: [
-    {
-      provide: 'accessToken',
-      inject: [ConfigService],
-      useFactory: (configService: ConfigService) =>
-        configService.get<string>('ACCESS_TOKEN_SECRET_KEY'),
-    },
-    TokenService,
-  ],
+  providers: [TokenService],
   exports: [TokenService],
   imports: [ConfigModule, JwtModule],
 })
