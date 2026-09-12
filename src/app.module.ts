@@ -6,6 +6,7 @@ import { TokenModule } from './Token/token.module';
 import { AccountModule } from './accounts/account.module';
 import { AuthModule } from './auth/auth.module';
 import { PrismaModule } from './prisma/prisma.module';
+import { BalanceModule } from './balance/balance.module';
 export const { ObserveModule, ObserveInstrument } = createObserveModule();
 
 @Module({
@@ -19,6 +20,7 @@ export const { ObserveModule, ObserveInstrument } = createObserveModule();
     AuthModule,
     StripeModule,
     AccountModule,
+    BalanceModule,
   ],
   controllers: [],
   providers: [],
