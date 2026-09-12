@@ -21,6 +21,7 @@ model User {
   customer         StripeCustomer?
   subscriptions    Subscription[]
   payments         Payment[]
+  setupIntents     SetupIntent[]
   invoices         Invoice[]
   accounts         StripeAccount[]
   createdAt        DateTime        @default(now())
@@ -38,6 +39,7 @@ model StripeCustomer {
   defaultPaymentMethodId String?
   subscriptions          Subscription[]
   payments               Payment[]
+  setupIntents           SetupIntent[]
   invoices               Invoice[]
   createdAt              DateTime       @default(now())
   updatedAt              DateTime       @updatedAt
@@ -103,23 +105,49 @@ model SubscriptionItem {
 }
 
 model Payment {
-  id                    String          @id @default(cuid())
-  stripePaymentIntentId String          @unique
+  id                    String             @id @default(cuid())
+  stripePaymentIntentId String             @unique
   userId                String
   customerId            String?
-  user                  User            @relation(fields: [userId], references: [id], onDelete: Cascade)
-  customer              StripeCustomer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  user                  User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  customer              StripeCustomer?    @relation(fields: [customerId], references: [id], onDelete: SetNull)
   amount                Int
-  amountReceived        Int             @default(0)
+  amountReceived        Int                @default(0)
   currency              String
   status                PaymentStatus
+  paymentMethodId       String?
+  captureMethod         CaptureMethod      @default(automatic)
+  confirmationMethod    ConfirmationMethod @default(automatic)
+  setupFutureUsage      SetupFutureUsage?
+  receiptEmail          String?
   description           String?
+  statementDescriptor   String?
+  cancellationReason    String?
   receiptUrl            String?
   failureCode           String?
   failureMessage        String?
   metadata              Json?
-  createdAt             DateTime        @default(now())
-  updatedAt             DateTime        @updatedAt
+  createdAt             DateTime           @default(now())
+  updatedAt             DateTime           @updatedAt
+}
+
+model SetupIntent {
+  id                  String            @id @default(cuid())
+  stripeSetupIntentId String            @unique
+  userId              String
+  customerId          String?
+  user                User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  customer            StripeCustomer?   @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  paymentMethodId     String?
+  status              SetupIntentStatus
+  usage               SetupIntentUsage  @default(off_session)
+  description         String?
+  cancellationReason  String?
+  failureCode         String?
+  failureMessage      String?
+  metadata            Json?
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
 }
 
 model Invoice {
@@ -208,6 +236,36 @@ enum PaymentStatus {
   requires_capture
   succeeded
   canceled
+}
+
+enum CaptureMethod {
+  automatic
+  automatic_async
+  manual
+}
+
+enum ConfirmationMethod {
+  automatic
+  manual
+}
+
+enum SetupFutureUsage {
+  on_session
+  off_session
+}
+
+enum SetupIntentStatus {
+  requires_payment_method
+  requires_confirmation
+  requires_action
+  processing
+  canceled
+  succeeded
+}
+
+enum SetupIntentUsage {
+  on_session
+  off_session
 }
 
 enum InvoiceStatus {
