@@ -20,7 +20,8 @@
     "test:debug": "vitest --inspect-brk --no-file-parallelism",
     "test:e2e": "vitest run --config ./vitest.config.e2e.ts",
     "prisma:generate": "prisma generate",
-    "prisma:migrate": "prisma migrate dev"
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:seed": "node -r ts-node/register prisma/seed.ts"
   },
   "dependencies": {
     "@nestjs/common": "^12.0.1",
@@ -32,6 +33,8 @@
     "@prisma/adapter-pg": "^7.10.0",
     "@prisma/client": "^7.10.0",
     "@types/pg": "^8.23.1",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.15.1",
     "nodemon": "^3.1.14",
     "pg": "^8.23.0",
     "prisma": "^7.10.0",

@@ -1,24 +1,34 @@
-import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
-import { Observable } from 'rxjs';
+import {
+  CanActivate,
+  ExecutionContext,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { TokenService } from '../../Token/token.service';
 
 @Injectable()
 export class IsAuthenticatedGuard implements CanActivate {
-  constructor(private readonly TokenService: TokenService) {}
-  canActivate(
-    context: ExecutionContext,
-  ): boolean | Promise<boolean> | Observable<boolean> {
+  constructor(private readonly tokenService: TokenService) {}
+
+  async canActivate(context: ExecutionContext): Promise<boolean> {
     const req = context.switchToHttp().getRequest();
-    // Get Acess Token from Header or Cookie
-    const token =
-      (req.headers.authorization && req.headers.authorization.split(' ')[1]) ||
-      req.cookies['accessToken'];
-    if (!token) {
-      return false;
+
+    const authorization = req.headers.authorization;
+    const [scheme, token] = authorization?.split(' ') ?? [];
+    if (scheme !== 'Bearer' || !token) {
+      throw new UnauthorizedException('Bearer access token is required');
     }
-    // verify access token
-    const user = this.TokenService.verify(token);
-    req.user = user;
+
+    if (!token) {
+      throw new UnauthorizedException('Access token is required');
+    }
+
+    try {
+      req.user = await this.tokenService.verify(token);
+    } catch {
+      throw new UnauthorizedException('Invalid or expired access token');
+    }
+
     return true;
   }
 }

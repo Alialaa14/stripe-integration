@@ -4,6 +4,11 @@ import { createObserveModule } from '@nestjs/observe';
 import { StripeModule } from './stripe/stripe.module';
 import { TokenModule } from './Token/token.module';
 import { AccountModule } from './accounts/account.module';
+import { AuthModule } from './auth/auth.module';
+import { PrismaModule } from './prisma/prisma.module';
+import { BalanceModule } from './balance/balance.module';
+import { PaymentModule } from './payment/payment.module';
+import { CheckoutModule } from './checkout/checkout.module';
 export const { ObserveModule, ObserveInstrument } = createObserveModule();
 
 @Module({
@@ -13,8 +18,13 @@ export const { ObserveModule, ObserveInstrument } = createObserveModule();
     }),
 
     TokenModule,
+    PrismaModule,
+    AuthModule,
     StripeModule,
     AccountModule,
+    BalanceModule,
+    PaymentModule,
+    CheckoutModule,
   ],
   controllers: [],
   providers: [],

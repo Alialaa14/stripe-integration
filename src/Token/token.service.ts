@@ -1,29 +1,53 @@
-import { Injectable, Inject } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { JwtService } from '@nestjs/jwt';
+import { JwtService, type JwtSignOptions } from '@nestjs/jwt';
 
 @Injectable()
 export class TokenService {
   constructor(
-    @Inject('accessToken') private readonly accessToken: string,
-    private readonly JwtService: JwtService,
+    private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
-  ) {
-    console.log(this.accessToken);
+  ) {}
+
+  createAccessToken(payload: Record<string, unknown>) {
+    return this.jwtService.signAsync(payload, {
+      secret: this.getRequiredConfig('ACCESS_TOKEN_SECRET_KEY'),
+      expiresIn: this.getExpiry('ACCESS_TOKEN_EXPIRY', '15m'),
+    });
   }
 
-  async createAccessToken(payload: any) {
-    const secret = this.configService.get<string>('ACCESS_TOKEN_SECRET_KEY');
-    const expiresIn = this.configService.get<number>('ACCESS_TOKEN_EXPIRY');
-    return this.JwtService.sign(payload, { secret, expiresIn });
+  createRefreshToken(payload: Record<string, unknown>) {
+    return this.jwtService.signAsync(payload, {
+      secret: this.getRequiredConfig('REFRESH_TOKEN_SECRET_KEY'),
+      expiresIn: this.getExpiry('REFRESH_TOKEN_EXPIRY', '7d'),
+    });
   }
-  async createRefreshToken(payload: any) {
-    const secret = this.configService.get<string>('REFRESH_TOKEN_SECRET_KEY');
-    const expiresIn = this.configService.get<number>('REFRESH_TOKEN_EXPIRY');
-    return this.JwtService.sign(payload, { secret, expiresIn });
+
+  verify(accessToken: string) {
+    return this.jwtService.verifyAsync<{ sub: string; email: string }>(
+      accessToken,
+      { secret: this.getRequiredConfig('ACCESS_TOKEN_SECRET_KEY') },
+    );
   }
-  async verify(accessToken: string) {
-    const secret = this.configService.get<string>('ACCESS_TOKEN_SECRET_KEY');
-    return this.JwtService.verify(accessToken, { secret });
+
+  verifyRefreshToken(refreshToken: string) {
+    return this.jwtService.verifyAsync<{ sub: string; email: string }>(
+      refreshToken,
+      { secret: this.getRequiredConfig('REFRESH_TOKEN_SECRET_KEY') },
+    );
+  }
+
+  private getRequiredConfig(key: string) {
+    const value = this.configService.get<string>(key);
+    if (!value) throw new Error(`${key} is required`);
+    return value;
+  }
+
+  private getExpiry(
+    key: string,
+    fallback: string,
+  ): JwtSignOptions['expiresIn'] {
+    return (this.configService.get<string>(key) ??
+      fallback) as JwtSignOptions['expiresIn'];
   }
 }
