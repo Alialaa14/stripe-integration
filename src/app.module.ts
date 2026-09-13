@@ -8,6 +8,7 @@ import { AuthModule } from './auth/auth.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { BalanceModule } from './balance/balance.module';
 import { PaymentModule } from './payment/payment.module';
+import { CheckoutModule } from './checkout/checkout.module';
 export const { ObserveModule, ObserveInstrument } = createObserveModule();
 
 @Module({
@@ -23,6 +24,7 @@ export const { ObserveModule, ObserveInstrument } = createObserveModule();
     AccountModule,
     BalanceModule,
     PaymentModule,
+    CheckoutModule,
   ],
   controllers: [],
   providers: [],

@@ -10,22 +10,22 @@ import { RegisterDto } from './dto/register.dto';
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @Post('register')
+  @Post('/register')
   register(@Body() dto: RegisterDto) {
     return this.authService.register(dto);
   }
 
-  @Post('login')
+  @Post('/login')
   login(@Body() dto: LoginDto) {
     return this.authService.login(dto);
   }
 
-  @Post('refresh')
+  @Post('/refresh')
   refresh(@Body() dto: RefreshTokenDto) {
     return this.authService.refresh(dto.refreshToken);
   }
 
-  @Get('me')
+  @Get('/me')
   @UseGuards(IsAuthenticatedGuard)
   me(@CurrentUser() user: unknown) {
     return user;
