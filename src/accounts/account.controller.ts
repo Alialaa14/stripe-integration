@@ -3,6 +3,8 @@ import {
   Controller,
   Delete,
   Get,
+  HttpCode,
+  HttpStatus,
   Param,
   Patch,
   Post,
@@ -23,6 +25,7 @@ export class AccountController {
   constructor(private readonly accountService: AccountService) {}
 
   @Post()
+  @HttpCode(HttpStatus.CREATED)
   create(@CurrentUser() user: { sub: string }, @Body() dto: CreateAccountDto) {
     return this.accountService.createAccount(
       user.sub,
@@ -37,6 +40,7 @@ export class AccountController {
   }
 
   @Patch(':accountId')
+  @HttpCode(HttpStatus.OK)
   update(
     @CurrentUser() user: { sub: string },
     @Param('accountId') accountId: string,
@@ -56,6 +60,7 @@ export class AccountController {
   }
 
   @Get(':accountId')
+  @HttpCode(HttpStatus.OK)
   findOne(
     @CurrentUser() user: { sub: string },
     @Param('accountId') accountId: string,
@@ -64,6 +69,7 @@ export class AccountController {
   }
 
   @Get()
+  @HttpCode(HttpStatus.OK)
   findAll(
     @CurrentUser() user: { sub: string },
     @Query() query: ListAccountsDto,
@@ -77,6 +83,7 @@ export class AccountController {
   }
 
   @Delete(':accountId')
+  @HttpCode(HttpStatus.OK)
   async close(
     @CurrentUser() user: { sub: string },
     @Param('accountId') accountId: string,
@@ -85,6 +92,7 @@ export class AccountController {
   }
 
   @Post(':accountId/link')
+  @HttpCode(HttpStatus.CREATED)
   async accountLink(
     @CurrentUser() user: { sub: string },
     @Param('accountId') accountId: string,

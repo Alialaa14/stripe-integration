@@ -9,6 +9,8 @@ import { PrismaModule } from './prisma/prisma.module';
 import { BalanceModule } from './balance/balance.module';
 import { PaymentModule } from './payment/payment.module';
 import { CheckoutModule } from './checkout/checkout.module';
+import { CustomerModule } from './customer/customer.module';
+import { SetupIntentModule } from './setup-intent/setup-intent.module';
 export const { ObserveModule, ObserveInstrument } = createObserveModule();
 
 @Module({
@@ -25,6 +27,8 @@ export const { ObserveModule, ObserveInstrument } = createObserveModule();
     BalanceModule,
     PaymentModule,
     CheckoutModule,
+    CustomerModule,
+    SetupIntentModule,
   ],
   controllers: [],
   providers: [],

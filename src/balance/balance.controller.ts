@@ -1,4 +1,11 @@
-import { Controller, Get, Query, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { BalanceService, DateIntervalInput } from './balance.service';
 import { IsAuthenticatedGuard } from '../common/guards/isAuthenticated';
 
@@ -7,18 +14,21 @@ export class BalanceController {
   constructor(private readonly balanceService: BalanceService) {}
 
   @Get()
+  @HttpCode(HttpStatus.OK)
   @UseGuards(IsAuthenticatedGuard)
   getBalance() {
     return this.balanceService.getBalance();
   }
 
   @Get('/transactions/:id')
+  @HttpCode(HttpStatus.OK)
   @UseGuards(IsAuthenticatedGuard)
   getBalanceTransaction(id: string) {
     return this.balanceService.getBalanceTransaction(id);
   }
 
   @Get('transactions')
+  @HttpCode(HttpStatus.OK)
   @UseGuards(IsAuthenticatedGuard)
   getBalanceTransactions(
     @Query() query: { limit: string; type: string; created: DateIntervalInput },

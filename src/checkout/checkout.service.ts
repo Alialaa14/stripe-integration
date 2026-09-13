@@ -9,12 +9,14 @@ import { CheckoutMode, CheckoutSessionStatus } from '../generated/prisma/enums';
 import { CreateCheckoutSessionDto } from './dto/create-checkout-session.dto';
 import { UpdateCheckoutSessionDto } from './dto/update-checkout-session.dto';
 import { ListCheckoutSessionsDto } from './dto/list-checkout-sessions.dto';
+import { CustomerService } from '../customer/customer.service';
 
 @Injectable()
 export class CheckoutService {
   constructor(
     private readonly stripeService: StripeService,
     private readonly prismaService: PrismaService,
+    private readonly customerService: CustomerService,
   ) {}
 
   private async checkProductPricesIds(
@@ -49,13 +51,13 @@ export class CheckoutService {
 
     if (!user) throw new NotFoundException('User does not exist');
 
+    const customer = await this.customerService.createOrGetCustomer(userId);
+
     const { pricesByStripeId, requestedPriceIds } =
       await this.checkProductPricesIds(dto.lineItems);
 
     const session = await this.stripeService.client.checkout.sessions.create({
-      ...(user.customer?.stripeCustomerId && {
-        customer: user.customer.stripeCustomerId,
-      }),
+      customer: customer.stripeCustomerId,
       line_items: dto.lineItems.map((item) => ({
         price: item.priceId,
         quantity: item.quantity,
@@ -71,7 +73,7 @@ export class CheckoutService {
       data: {
         stripeCheckoutSessionId: session.id,
         userId,
-        customerId: user.customer?.id,
+        customerId: customer.id,
         status: CheckoutSessionStatus.open,
         mode: CheckoutMode.payment,
         currency: dto.currency,
@@ -160,7 +162,10 @@ export class CheckoutService {
     const checkoutSession = await this.prismaService.checkoutSession.findUnique(
       {
         where: { stripeCheckoutSessionId: checkoutSessionId, userId },
-        include: { lineItems: { include: { price: true } } },
+        include: {
+          lineItems: { include: { price: true } },
+          customer: true,
+        },
       },
     );
 
@@ -199,11 +204,11 @@ export class CheckoutService {
       checkoutSession.stripeCheckoutSessionId,
     );
 
+    const customer = await this.customerService.createOrGetCustomer(userId);
+
     const newSession = await this.stripeService.client.checkout.sessions.create(
       {
-        ...(checkoutSession.customerId && {
-          customer: checkoutSession.customerId, // adjust to however you store the Stripe customer id
-        }),
+        customer: customer.stripeCustomerId,
         line_items: dto.lineItems.map((item) => ({
           price: item.priceId,
           quantity: item.quantity,
@@ -222,6 +227,7 @@ export class CheckoutService {
       },
       data: {
         stripeCheckoutSessionId: newSession.id,
+        customerId: customer.id,
         url: newSession.url,
         amountTotal: newSession.amount_total,
         expiresAt: newSession.expires_at
@@ -238,6 +244,32 @@ export class CheckoutService {
     });
 
     return newSession;
+  }
+
+  async cancelCheckout(userId: string, checkoutSessionId: string) {
+    const checkoutSession = await this.prismaService.checkoutSession.findFirst({
+      where: {
+        stripeCheckoutSessionId: checkoutSessionId,
+        userId,
+      },
+    });
+
+    if (!checkoutSession) {
+      throw new NotFoundException(
+        'Checkout session does not exist or user does not own it',
+      );
+    }
+    await this.prismaService.checkoutSession.update({
+      where: {
+        stripeCheckoutSessionId: checkoutSession.stripeCheckoutSessionId,
+      },
+      data: {
+        status: CheckoutSessionStatus.expired,
+      },
+    });
+    return this.stripeService.client.checkout.sessions.expire(
+      checkoutSession.stripeCheckoutSessionId,
+    );
   }
 
   private toUnixTimestamp(value: string): number {

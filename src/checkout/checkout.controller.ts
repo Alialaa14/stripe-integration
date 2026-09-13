@@ -2,6 +2,8 @@ import {
   Body,
   Controller,
   Get,
+  HttpCode,
+  HttpStatus,
   Param,
   Patch,
   Post,
@@ -24,6 +26,7 @@ export class CheckoutController {
   constructor(private readonly checkoutService: CheckoutService) {}
 
   @Post()
+  @HttpCode(HttpStatus.CREATED)
   @UseGuards(IsAuthenticatedGuard)
   async createCheckoutSession(
     @CurrentUser() user: { sub: string },
@@ -33,6 +36,7 @@ export class CheckoutController {
   }
 
   @Get()
+  @HttpCode(HttpStatus.OK)
   @UseGuards(IsAuthenticatedGuard)
   async listCheckoutSessions(
     @CurrentUser() user: { sub: string },
@@ -42,6 +46,7 @@ export class CheckoutController {
   }
 
   @Get('/:id')
+  @HttpCode(HttpStatus.OK)
   @UseGuards(IsAuthenticatedGuard)
   async retrieveCheckoutSession(
     @Param() params: CheckoutSessionParamDto,
@@ -51,6 +56,7 @@ export class CheckoutController {
   }
 
   @Patch('/:id')
+  @HttpCode(HttpStatus.OK)
   @UseGuards(IsAuthenticatedGuard)
   async updateCheckoutSession(
     @Param() params: UpdateCheckoutSessionParam,
@@ -58,5 +64,15 @@ export class CheckoutController {
     @Body() dto: UpdateCheckoutSessionDto,
   ) {
     return this.checkoutService.updateCheckoutSession(user.sub, params.id, dto);
+  }
+
+  @Post('/:id/cancel')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(IsAuthenticatedGuard)
+  async cancelCheckoutSession(
+    @Param() params: CheckoutSessionParamDto,
+    @CurrentUser() user: { sub: string },
+  ) {
+    return this.checkoutService.cancelCheckout(user.sub, params.id);
   }
 }

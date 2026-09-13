@@ -6,6 +6,7 @@ import { CreatePaymentIntentDto } from './dto/create-payment-intent.dto';
 import { UpdatePaymentIntentDto } from './dto/update-payment-intent.dto';
 import { ListPaymentIntentsDto } from './dto/list-payment-intents.dto';
 import { CancelPaymentIntentDto } from './dto/cancel-payment-intent.dto';
+import { CustomerService } from '../customer/customer.service';
 const paymentStatuses = new Set<string>(Object.values(PaymentStatus));
 
 function toPaymentStatus(status: string): PaymentStatus {
@@ -21,6 +22,7 @@ export class PaymentService {
   constructor(
     private readonly stripeService: StripeService,
     private readonly prismaService: PrismaService,
+    private readonly customerService: CustomerService,
   ) {}
 
   private transformAmountToCent(amount: number): number {
@@ -38,6 +40,7 @@ export class PaymentService {
 
     if (!getUser) throw new NotFoundException('User does not exist');
 
+    const customer = await this.customerService.createOrGetCustomer(userId);
     const paymentMethod =
       getUser.customer?.defaultPaymentMethodId || dto.paymentMethod;
     const receiptEmail = getUser.email || dto.receiptEmail;
@@ -46,6 +49,7 @@ export class PaymentService {
       {
         amount: this.transformAmountToCent(dto.amount),
         currency: dto.currency || 'usd',
+        customer: customer.stripeCustomerId,
         ...(dto.description !== undefined && {
           description: dto.description,
         }),
