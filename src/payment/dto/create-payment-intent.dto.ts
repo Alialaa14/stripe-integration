@@ -1,4 +1,5 @@
 import {
+  IsBoolean,
   IsEmail,
   IsInt,
   IsObject,
@@ -29,6 +30,10 @@ export class CreatePaymentIntentDto {
   @IsOptional()
   @IsEmail()
   receiptEmail?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  saveItLater?: boolean;
 
   @IsOptional()
   @IsObject()

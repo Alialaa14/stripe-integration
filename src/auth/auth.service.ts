@@ -12,6 +12,7 @@ import {
 import { promisify } from 'node:util';
 import { PrismaService } from '../prisma/prisma.service';
 import { TokenService } from '../Token/token.service';
+import { CustomerService } from '../customer/customer.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 
@@ -32,6 +33,7 @@ export class AuthService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly tokenService: TokenService,
+    private readonly customerService: CustomerService,
   ) {}
 
   async register(dto: RegisterDto) {
@@ -52,6 +54,8 @@ export class AuthService {
         password: await this.hashPassword(dto.password),
       },
     });
+
+    await this.customerService.createOrGetCustomer(user.id);
 
     return this.issueTokens(user);
   }

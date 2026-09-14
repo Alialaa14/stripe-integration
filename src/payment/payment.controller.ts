@@ -2,6 +2,8 @@ import {
   Body,
   Controller,
   Get,
+  HttpCode,
+  HttpStatus,
   Param,
   Patch,
   Post,
@@ -23,6 +25,7 @@ export class PaymentController {
   constructor(private readonly paymentService: PaymentService) {}
 
   @Post()
+  @HttpCode(HttpStatus.CREATED)
   @UseGuards(IsAuthenticatedGuard)
   async createPaymentIntent(
     @CurrentUser() user: { sub: string },
@@ -32,6 +35,7 @@ export class PaymentController {
   }
 
   @Patch('/:paymentIntentId')
+  @HttpCode(HttpStatus.OK)
   @UseGuards(IsAuthenticatedGuard)
   async updatePaymentIntent(
     @Param('paymentIntentId') paymentIntentId: string,
@@ -46,6 +50,7 @@ export class PaymentController {
   }
 
   @Get()
+  @HttpCode(HttpStatus.OK)
   @UseGuards(IsAuthenticatedGuard)
   async listPaymentIntents(
     @CurrentUser() user: { sub: string },
@@ -55,6 +60,7 @@ export class PaymentController {
   }
 
   @Get('/:paymentIntentId')
+  @HttpCode(HttpStatus.OK)
   @UseGuards(IsAuthenticatedGuard)
   async retrievePaymentIntent(
     @Param() dto: PaymentIntentParamDto,
@@ -67,6 +73,7 @@ export class PaymentController {
   }
 
   @Post('/:paymentIntentId/cancel')
+  @HttpCode(HttpStatus.NO_CONTENT)
   @UseGuards(IsAuthenticatedGuard)
   async cancelPaymentIntent(
     @Param() dto: PaymentIntentParamDto,
